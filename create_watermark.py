@@ -6,7 +6,8 @@ DPI: int = 300
 TEXTS: list[str] = [
     "Lorem ipsum", "dolor sit"
 ]
-OPACITY: float = 0  # value in [0,1]
+BACKGROUND: tuple[int, int, int, int] = (255, 255, 255, 0)
+OPACITY: float = 0.1  # value in [0,1]
 FONT_NAME: str = "arial"
 FONT_SIZE: int = int(DPI/3)
 TEXT_COLOR: str | tuple[int, int, int] = "gray"
@@ -34,7 +35,7 @@ def set_pixel(img: Image, coor: tuple[int, int], rgba: tuple[int, int, int, int]
     pixel_access[x, y] = rgba
 
 
-def set_opacity(img: Image, percentage: float, relative: bool = False) -> Image:
+def set_opacity(img: Image, percentage: float, relative: bool = True) -> Image:
     tmp = to_rgba(img)
     absolute_opacity = int(255*percentage)
     data = tmp.getdata()
@@ -71,7 +72,7 @@ def draw_text(img: Image, text: str, coor: tuple[int, int], *, angle: float = 0,
 
 def main():
     print("for different results see parameters at the top of the file")
-    img = create_image(bg_color=(255, 255, 255, int(255*OPACITY)))
+    img = create_image(bg_color=BACKGROUND)
     text_i = 0
     for y in frange(START_Y_OFFSET, img.size[1]*2, ROW_SPACING):
         text = TEXTS[text_i]
@@ -79,17 +80,11 @@ def main():
         bbox = ImageDraw.Draw(img).textbbox(
             (0, 0), text, font=get_font(FONT_NAME, FONT_SIZE))
         w, h = bbox[2] - bbox[0], bbox[3] - bbox[1]
-        y_delta = 0
-        # for y_delta in range(0, 1, w):
-        draw_text(img, text, (y_delta, y-y_delta),
-                  angle=ANGLE, font_size=FONT_SIZE, color=TEXT_COLOR)
+        draw_text(img, text, (0, y), angle=ANGLE,
+                  font_size=FONT_SIZE, color=TEXT_COLOR, font_name=FONT_NAME)
         text_i = (text_i+1) % len(TEXTS)
+    img = set_opacity(img, OPACITY)
     img.save(f"watermark{int(100*OPACITY)}.png")
-    # for opacity in frange(0.1, 1.01, 0.1):
-    #     name = f"watermark{int(opacity*100)}.png"
-    #     print(f"Creating {name}")
-    #     tmp = set_opacity(img, opacity)
-    #     tmp.save(f"./{name}")
 
 
 if __name__ == "__main__":
